@@ -1,0 +1,38 @@
+{
+  "name": "redux-formagic",
+  "version": "0.1.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kjessec/redux-formagic.git"
+  },
+  "keywords": [
+    "react",
+    "redux",
+    "form",
+    "simple",
+    "two-way",
+    "2way",
+    "flux",
+    "reactjs",
+    "input"
+  ],
+  "author": "Jesse Chung <jesse@soob.co>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kjessec/redux-formagic/issues"
+  },
+  "homepage": "https://github.com/kjessec/redux-formagic#readme",
+  "peerDependencies": {
+    "react": "^0.14.0 || ^15.0.0"
+  }
+}
