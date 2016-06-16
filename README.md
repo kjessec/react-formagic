@@ -58,9 +58,6 @@ apart from [this](https://github.com/kjessec/react-formagic/blob/master/src/inde
     render() {
       const { myData } = this.props;
       return (
-        // the third argument is optional.
-        // this is doing exactly the same thing as the first option,
-        // apart from [this](https://github.com/kjessec/react-formagic/blob/master/src/index.js#L69)
         <input type="text" {...bind(data, 'key', String)}/>
       );
     }
