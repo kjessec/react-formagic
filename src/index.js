@@ -6,7 +6,7 @@ const _defaultOptions = {
   transclude: true
 };
 
-export function formagic(_selector, _onGlobalStateChange, _options) {
+export function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
   return function _wrap(Component) {
     return class FormagicWrapperComponent extends React.Component {
 
@@ -16,39 +16,39 @@ export function formagic(_selector, _onGlobalStateChange, _options) {
         // assign options
         this.options = { ..._defaultOptions, ..._options };
 
-        // assign selector
-        this.selector = _selector;
+        // assign selectPropsToListen
+        this.selectPropsToListen = _selectPropsToListen;
 
-        // assign onGlobalStateChange
-        this.onGlobalStateChange = _onGlobalStateChange;
+        // assign subscribeToChanges
+        this.subscribeToChanges = _subscribeToChanges;
 
         // initialize repo
         this._repo = {};
       }
 
       componentWillMount() {
-        this.recalculate(this.props);
+        this.recalculateReactiveTree(this.props);
       }
 
       componentWillReceiveProps(nextProps) {
-        this.recalculate(nextProps);
+        this.recalculateReactiveTree(nextProps);
       }
 
-      recalculate(dataTree) {
-        const { selector } = this;
-        const selectedDataTree = selector(dataTree);
+      recalculateReactiveTree(dataTree) {
+        const { selectPropsToListen } = this;
+        const selectedDataTree = selectPropsToListen(dataTree);
 
         this._repo = defineReactive(
           selectedDataTree,
-          this.handleGlobalStateChange.bind(this)
+          this.subscribeToChanges.bind(this)
         );
       }
 
       handleGlobalStateChange() {
         const { dispatch } = this.props;
-        const { _repo, onGlobalStateChange } = this;
+        const { _repo, subscribeToChanges } = this;
 
-        onGlobalStateChange(_repo, dispatch);
+        subscribeToChanges(_repo, dispatch);
       }
 
       render() {
