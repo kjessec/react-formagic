@@ -1,5 +1,5 @@
 {
-  "name": "redux-formagic",
+  "name": "react-formagic",
   "version": "0.1.0",
   "description": "",
   "main": "index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kjessec/redux-formagic.git"
+    "url": "git+https://github.com/kjessec/react-formagic.git"
   },
   "keywords": [
     "react",
@@ -29,9 +29,9 @@
   "author": "Jesse Chung <jesse@soob.co>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/kjessec/redux-formagic/issues"
+    "url": "https://github.com/kjessec/react-formagic/issues"
   },
-  "homepage": "https://github.com/kjessec/redux-formagic#readme",
+  "homepage": "https://github.com/kjessec/react-formagic#readme",
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0"
   }
