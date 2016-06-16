@@ -32,7 +32,7 @@ var _defaultOptions = {
   transclude: true
 };
 
-function formagic(_selector, _onGlobalStateChange, _options) {
+function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
   return function _wrap(Component) {
     return function (_React$Component) {
       _inherits(FormagicWrapperComponent, _React$Component);
@@ -46,11 +46,11 @@ function formagic(_selector, _onGlobalStateChange, _options) {
 
         _this.options = _extends({}, _defaultOptions, _options);
 
-        // assign selector
-        _this.selector = _selector;
+        // assign selectPropsToListen
+        _this.selectPropsToListen = _selectPropsToListen;
 
-        // assign onGlobalStateChange
-        _this.onGlobalStateChange = _onGlobalStateChange;
+        // assign subscribeToChanges
+        _this.subscribeToChanges = _subscribeToChanges;
 
         // initialize repo
         _this._repo = {};
@@ -60,31 +60,31 @@ function formagic(_selector, _onGlobalStateChange, _options) {
       _createClass(FormagicWrapperComponent, [{
         key: 'componentWillMount',
         value: function componentWillMount() {
-          this.recalculate(this.props);
+          this.recalculateReactiveTree(this.props);
         }
       }, {
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
-          this.recalculate(nextProps);
+          this.recalculateReactiveTree(nextProps);
         }
       }, {
-        key: 'recalculate',
-        value: function recalculate(dataTree) {
-          var selector = this.selector;
+        key: 'recalculateReactiveTree',
+        value: function recalculateReactiveTree(dataTree) {
+          var selectPropsToListen = this.selectPropsToListen;
 
-          var selectedDataTree = selector(dataTree);
+          var selectedDataTree = selectPropsToListen(dataTree);
 
-          this._repo = defineReactive(selectedDataTree, this.handleGlobalStateChange.bind(this));
+          this._repo = defineReactive(selectedDataTree, this.subscribeToChanges.bind(this));
         }
       }, {
         key: 'handleGlobalStateChange',
         value: function handleGlobalStateChange() {
           var dispatch = this.props.dispatch;
           var _repo = this._repo;
-          var onGlobalStateChange = this.onGlobalStateChange;
+          var subscribeToChanges = this.subscribeToChanges;
 
 
-          onGlobalStateChange(_repo, dispatch);
+          subscribeToChanges(_repo, dispatch);
         }
       }, {
         key: 'render',
