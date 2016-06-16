@@ -74,7 +74,7 @@ function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
 
           var selectedDataTree = selectPropsToListen(dataTree);
 
-          this._repo = defineReactive(selectedDataTree, this.subscribeToChanges.bind(this));
+          this._repo = defineReactive(selectedDataTree, this.handleGlobalStateChange.bind(this));
         }
       }, {
         key: 'handleGlobalStateChange',

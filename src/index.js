@@ -40,7 +40,7 @@ export function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
 
         this._repo = defineReactive(
           selectedDataTree,
-          this.subscribeToChanges.bind(this)
+          this.handleGlobalStateChange.bind(this)
         );
       }
 
