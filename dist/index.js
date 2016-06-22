@@ -22,6 +22,8 @@ var _util = require('./util');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -29,7 +31,10 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _defaultOptions = {
-  transclude: true
+  // do not do transclusion by default
+  transclude: false,
+  // default namespace passed as a prop is formagic
+  namespace: 'formagic'
 };
 
 function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
@@ -92,7 +97,7 @@ function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
           var transclude = this.options.transclude;
           var _repo = this._repo;
 
-          var formagicProps = transclude ? _extends({}, _repo) : { formagic: _repo };
+          var formagicProps = transclude ? _extends({}, _repo) : _defineProperty({}, this.options.namespace, _repo);
 
           return _react2.default.createElement(Component, _extends({}, this.props, formagicProps));
         }
@@ -117,8 +122,10 @@ function bind(obj, key, type) {
 }
 
 function defineReactive(source, triggerDispatch) {
-  // ignore primitive/function leaf
-  if (typeof source === 'function' || (typeof source === 'undefined' ? 'undefined' : _typeof(source)) !== 'object') return source;
+  // return function, primitive, null/undefined as is
+  // these are the leaf values, attempting to set reactivity on them
+  // will fail
+  if (typeof source === 'undefined' || typeof source === 'function' || (typeof source === 'undefined' ? 'undefined' : _typeof(source)) !== 'object' || source === null) return source;
 
   // if object (object/array), walk through the members
   // and set reactivity
@@ -126,41 +133,34 @@ function defineReactive(source, triggerDispatch) {
 
   // walk through the object
   Object.keys(source).forEach(function (key) {
-    var initialState = source[key];
+    var persistedState = source[key];
 
     // if array, map through the values and set reactivity
-    if ((0, _util.isArray)(initialState)) {
-      newObj[key] = initialState.map(function (state) {
+    if ((0, _util.isArray)(persistedState)) {
+      persistedState = persistedState.map(function (state) {
         return defineReactive(state, triggerDispatch);
       });
     }
 
-    // if object, go deeper
-    else if ((0, _util.isObject)(initialState)) {
-        newObj[key] = defineReactive(initialState, triggerDispatch);
+    // if object, go deeper and recursively make all leaves reactive
+    else if ((0, _util.isObject)(persistedState)) {
+        persistedState = defineReactive(persistedState, triggerDispatch);
       }
 
-      // only make primitives reactive
-      else {
-          (function () {
-            var _state = initialState;
+    // define reactive property
+    Object.defineProperty(newObj, key, {
+      enumerable: true,
+      get: function get() {
+        return persistedState;
+      },
+      set: function set(nextState) {
+        // set the internal state
+        persistedState = nextState;
 
-            // define reactive property
-            Object.defineProperty(newObj, key, {
-              enumerable: true,
-              get: function get() {
-                return _state;
-              },
-              set: function set(nextState) {
-                // set the internal state
-                _state = nextState;
-
-                // upon any value is being set, do triggerDispatch
-                triggerDispatch();
-              }
-            });
-          })();
-        }
+        // upon any value is being set, do triggerDispatch
+        triggerDispatch();
+      }
+    });
   });
 
   return newObj;

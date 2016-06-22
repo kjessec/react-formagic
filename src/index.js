@@ -3,7 +3,10 @@ import React from 'react';
 import { isObject, isArray } from './util';
 
 const _defaultOptions = {
-  transclude: true
+  // do not do transclusion by default
+  transclude: false,
+  // default namespace passed as a prop is formagic
+  namespace: 'formagic'
 };
 
 export function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
@@ -54,7 +57,7 @@ export function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
       render() {
         const { transclude } = this.options;
         const { _repo } = this;
-        const formagicProps = transclude ? { ..._repo } : { formagic: _repo };
+        const formagicProps = transclude ? { ..._repo } : { [this.options.namespace]: _repo };
 
         return <Component {...this.props} {...formagicProps}/>;
       }
@@ -74,8 +77,15 @@ export function bind(obj, key, type) {
 }
 
 export function defineReactive(source, triggerDispatch) {
-  // ignore primitive/function leaf
-  if(typeof source === 'function' || typeof source !== 'object') return source;
+  // return function, primitive, null/undefined as is
+  // these are the leaf values, attempting to set reactivity on them
+  // will fail
+  if(
+    typeof source === 'undefined' ||
+    typeof source === 'function' ||
+    typeof source !== 'object' ||
+    source === null
+  ) return source;
 
   // if object (object/array), walk through the members
   // and set reactivity
@@ -83,35 +93,30 @@ export function defineReactive(source, triggerDispatch) {
 
   // walk through the object
   Object.keys(source).forEach(key => {
-    const initialState = source[key];
+    let persistedState = source[key];
 
     // if array, map through the values and set reactivity
-    if(isArray(initialState)) {
-      newObj[key] = initialState.map(state => defineReactive(state, triggerDispatch));
+    if(isArray(persistedState)) {
+      persistedState = persistedState.map(state => defineReactive(state, triggerDispatch));
     }
 
-    // if object, go deeper
-    else if(isObject(initialState)) {
-      newObj[key] = defineReactive(initialState, triggerDispatch);
+    // if object, go deeper and recursively make all leaves reactive
+    else if(isObject(persistedState)) {
+      persistedState = defineReactive(persistedState, triggerDispatch);
     }
 
-    // only make primitives reactive
-    else {
-      let _state = initialState;
+    // define reactive property
+    Object.defineProperty(newObj, key, {
+      enumerable: true,
+      get() { return persistedState; },
+      set(nextState) {
+        // set the internal state
+        persistedState = nextState;
 
-      // define reactive property
-      Object.defineProperty(newObj, key, {
-        enumerable: true,
-        get() { return _state; },
-        set(nextState) {
-          // set the internal state
-          _state = nextState;
-
-          // upon any value is being set, do triggerDispatch
-          triggerDispatch();
-        }
-      });
-    }
+        // upon any value is being set, do triggerDispatch
+        triggerDispatch();
+      }
+    });
   });
 
   return newObj;
