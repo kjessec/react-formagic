@@ -127,6 +127,13 @@ function defineReactive(source, triggerDispatch) {
   // will fail
   if (typeof source === 'undefined' || typeof source === 'function' || (typeof source === 'undefined' ? 'undefined' : _typeof(source)) !== 'object' || source === null) return source;
 
+  // if array, map through the values and set reactivity
+  else if ((0, _util.isArray)(source)) {
+      return source.map(function (state) {
+        return defineReactive(state, triggerDispatch);
+      });
+    }
+
   // if object (object/array), walk through the members
   // and set reactivity
   var newObj = {};
@@ -135,17 +142,10 @@ function defineReactive(source, triggerDispatch) {
   Object.keys(source).forEach(function (key) {
     var persistedState = source[key];
 
-    // if array, map through the values and set reactivity
-    if ((0, _util.isArray)(persistedState)) {
-      persistedState = persistedState.map(function (state) {
-        return defineReactive(state, triggerDispatch);
-      });
-    }
-
     // if object, go deeper and recursively make all leaves reactive
-    else if ((0, _util.isObject)(persistedState)) {
-        persistedState = defineReactive(persistedState, triggerDispatch);
-      }
+    if ((0, _util.isObject)(persistedState)) {
+      persistedState = defineReactive(persistedState, triggerDispatch);
+    }
 
     // define reactive property
     Object.defineProperty(newObj, key, {

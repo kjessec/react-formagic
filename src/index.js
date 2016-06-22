@@ -87,6 +87,11 @@ export function defineReactive(source, triggerDispatch) {
     source === null
   ) return source;
 
+  // if array, map through the values and set reactivity
+  else if(isArray(source)) {
+    return source.map(state => defineReactive(state, triggerDispatch));
+  }
+
   // if object (object/array), walk through the members
   // and set reactivity
   const newObj = {};
@@ -95,13 +100,8 @@ export function defineReactive(source, triggerDispatch) {
   Object.keys(source).forEach(key => {
     let persistedState = source[key];
 
-    // if array, map through the values and set reactivity
-    if(isArray(persistedState)) {
-      persistedState = persistedState.map(state => defineReactive(state, triggerDispatch));
-    }
-
     // if object, go deeper and recursively make all leaves reactive
-    else if(isObject(persistedState)) {
+    if(isObject(persistedState)) {
       persistedState = defineReactive(persistedState, triggerDispatch);
     }
 
