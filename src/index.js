@@ -1,5 +1,6 @@
 'use strict';
 import React from 'react';
+import { createProxy } from './createProxy';
 import { isObject, isArray } from './util';
 
 const _defaultOptions = {
@@ -41,7 +42,7 @@ export function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
         const { selectPropsToListen } = this;
         const selectedDataTree = selectPropsToListen(dataTree);
 
-        this._repo = defineReactive(
+        this._repo = createProxy(
           selectedDataTree,
           this.handleGlobalStateChange.bind(this)
         );
@@ -76,7 +77,7 @@ export function bind(obj, key, type) {
   };
 }
 
-export function defineReactive(source, triggerDispatch) {
+export function defineReactive(source, callback) {
   // return function, primitive, null/undefined as is
   // these are the leaf values, attempting to set reactivity on them
   // will fail
@@ -88,8 +89,18 @@ export function defineReactive(source, triggerDispatch) {
   ) return source;
 
   // if array, map through the values and set reactivity
-  else if(isArray(source)) {
-    return source.map(state => defineReactive(state, triggerDispatch));
+  if(isArray(source)) {
+    return source.map((state, idx) => {
+      function propagateChange(changed) {
+        // update source
+        source[idx] = changed;
+
+        // reportToParent
+        return callback(source.splice(0));
+      }
+
+      return defineReactive(state, propagateChange)
+    });
   }
 
   // if object (object/array), walk through the members
@@ -100,9 +111,17 @@ export function defineReactive(source, triggerDispatch) {
   Object.keys(source).forEach(key => {
     let persistedState = source[key];
 
+    function letMeKnowIfYouChangedSon(changed) {
+      // update source
+      source[key] = changed;
+
+      // reportToParent
+      return callback({...source});
+    }
+
     // if object, go deeper and recursively make all leaves reactive
     if(isObject(persistedState)) {
-      persistedState = defineReactive(persistedState, triggerDispatch);
+      persistedState = defineReactive(persistedState, letMeKnowIfYouChangedSon);
     }
 
     // define reactive property
@@ -114,7 +133,7 @@ export function defineReactive(source, triggerDispatch) {
         persistedState = nextState;
 
         // upon any value is being set, do triggerDispatch
-        triggerDispatch();
+        callback(nextState);
       }
     });
   });

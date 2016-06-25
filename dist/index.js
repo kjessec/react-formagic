@@ -18,6 +18,8 @@ var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
+var _createProxy = require('./createProxy');
+
 var _util = require('./util');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
@@ -79,7 +81,7 @@ function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
 
           var selectedDataTree = selectPropsToListen(dataTree);
 
-          this._repo = defineReactive(selectedDataTree, this.handleGlobalStateChange.bind(this));
+          this._repo = (0, _createProxy.createProxy)(selectedDataTree, this.handleGlobalStateChange.bind(this));
         }
       }, {
         key: 'handleGlobalStateChange',
@@ -121,18 +123,26 @@ function bind(obj, key, type) {
   };
 }
 
-function defineReactive(source, triggerDispatch) {
+function defineReactive(source, callback) {
   // return function, primitive, null/undefined as is
   // these are the leaf values, attempting to set reactivity on them
   // will fail
   if (typeof source === 'undefined' || typeof source === 'function' || (typeof source === 'undefined' ? 'undefined' : _typeof(source)) !== 'object' || source === null) return source;
 
   // if array, map through the values and set reactivity
-  else if ((0, _util.isArray)(source)) {
-      return source.map(function (state) {
-        return defineReactive(state, triggerDispatch);
-      });
-    }
+  if ((0, _util.isArray)(source)) {
+    return source.map(function (state, idx) {
+      function propagateChange(changed) {
+        // update source
+        source[idx] = changed;
+
+        // reportToParent
+        return callback(source.splice(0));
+      }
+
+      return defineReactive(state, propagateChange);
+    });
+  }
 
   // if object (object/array), walk through the members
   // and set reactivity
@@ -142,9 +152,17 @@ function defineReactive(source, triggerDispatch) {
   Object.keys(source).forEach(function (key) {
     var persistedState = source[key];
 
+    function letMeKnowIfYouChangedSon(changed) {
+      // update source
+      source[key] = changed;
+
+      // reportToParent
+      return callback(_extends({}, source));
+    }
+
     // if object, go deeper and recursively make all leaves reactive
     if ((0, _util.isObject)(persistedState)) {
-      persistedState = defineReactive(persistedState, triggerDispatch);
+      persistedState = defineReactive(persistedState, letMeKnowIfYouChangedSon);
     }
 
     // define reactive property
@@ -158,7 +176,7 @@ function defineReactive(source, triggerDispatch) {
         persistedState = nextState;
 
         // upon any value is being set, do triggerDispatch
-        triggerDispatch();
+        callback(nextState);
       }
     });
   });
