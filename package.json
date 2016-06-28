@@ -19,7 +19,7 @@
     "react": "^0.14.0 || ^15.0.0"
   },
   "scripts": {
-    "test": "node test",
+    "test": "babel-node test/createProxy-test",
     "build": "babel src --out-dir dist"
   },
   "repository": {

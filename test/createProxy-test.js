@@ -1,6 +1,6 @@
 'use strict';
 import test from 'tape';
-import { memoizedProxyContainer, createProxy } from '../src/createProxy';
+import { createProxy } from '../src/createProxy';
 
 createProxy.trackChanges = true;
 const getTestObj = () => ({

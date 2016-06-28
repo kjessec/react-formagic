@@ -17,6 +17,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 createProxy.trackChanges = false;
+
 function createProxy(source, callback) {
   var path = arguments.length <= 2 || arguments[2] === undefined ? '__root' : arguments[2];
 
@@ -29,6 +30,8 @@ function createProxy(source, callback) {
         if (createProxy.trackChanges) {
           console.log('[Array][' + path + '.' + key + '] state changed! ' + path + '.' + key + ' =>', newState);
         }
+
+        // shallow copy the array and propagate
         var newArray = [].concat(_toConsumableArray(source));
         newArray[key] = newState;
         callback(newArray, path);
@@ -40,9 +43,11 @@ function createProxy(source, callback) {
       Object.keys(source).map(function (key) {
         dirtySource[key] = _createProxy(source[key], function (newState) {
           if (createProxy.trackChanges) {
-            console.log('[Object][' + path + '.' + key + '] state changed! ' + path + '.' + key + ' =>', newState);
+            console.log('[Object][' + path + '.' + key + '] state changed! ' + path + '.' + key, source, ' => ', newState);
           }
-          callback(_extends({}, source, _defineProperty({}, key, newState)), path);
+
+          // shallow copy the object and propagate
+          callback(_extends({}, source, _defineProperty({}, key, newState)));
         }, path + '.' + key);
       });
 
@@ -54,8 +59,9 @@ function createProxy(source, callback) {
           if (createProxy.trackChanges) {
             console.log('[Leaf][' + path + '.' + name + '] ' + name + ' => ' + value);
           }
-          target[name] = value;
-          callback(_extends({}, target, _defineProperty({}, name, value)), path);
+
+          // option 2
+          callback(_extends({}, target, _defineProperty({}, name, value)));
           return true;
         }
       });
@@ -69,5 +75,5 @@ function createProxy(source, callback) {
   }
 
   // return primitive as is
-  else return source;
+  return source;
 }
