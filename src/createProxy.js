@@ -23,8 +23,8 @@ export function createProxy(source, callback, path = '__root', _createProxy = cr
       dirtySource[key] = _createProxy(source[key], function(newState) {
         if(createProxy.trackChanges) {
           console.log(
-            `[Object][${path}.${key}] state changed! ${path}.${key}`,
-            source, ` => `, newState
+            `[Object][${path}.${key}] state changed!`,
+            source[key], ` => `, newState
           );
         }
 

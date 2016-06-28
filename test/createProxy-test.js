@@ -77,6 +77,7 @@ test('create proxy', function(t) {
     // immutability test
     t.ok(tree.nested.foo.bar === 'ffff');
     t.ok(testObj !== tree);
+    t.ok(testObj.asdf === tree.asdf);
     t.ok(testObj.nested !== tree.nested);
     t.ok(testObj.nested.foo !== tree.nested.foo);
     t.ok(testObj.nested.foo.bar !== tree.nested.foo.bar);

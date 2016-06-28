@@ -43,7 +43,7 @@ function createProxy(source, callback) {
       Object.keys(source).map(function (key) {
         dirtySource[key] = _createProxy(source[key], function (newState) {
           if (createProxy.trackChanges) {
-            console.log('[Object][' + path + '.' + key + '] state changed! ' + path + '.' + key, source, ' => ', newState);
+            console.log('[Object][' + path + '.' + key + '] state changed!', source[key], ' => ', newState);
           }
 
           // shallow copy the object and propagate

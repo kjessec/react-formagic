@@ -39,20 +39,14 @@ export function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
       }
 
       recalculateReactiveTree(dataTree) {
-        const { selectPropsToListen } = this;
+        const { selectPropsToListen, subscribeToChanges } = this;
+        const { dispatch } = this.props;
         const selectedDataTree = selectPropsToListen(dataTree);
 
         this._repo = createProxy(
           selectedDataTree,
-          this.handleGlobalStateChange.bind(this)
+          (newState) => subscribeToChanges(newState, dispatch)
         );
-      }
-
-      handleGlobalStateChange() {
-        const { dispatch } = this.props;
-        const { _repo, subscribeToChanges } = this;
-
-        subscribeToChanges(_repo, dispatch);
       }
 
       render() {
@@ -75,68 +69,4 @@ export function bind(obj, key, type) {
       obj[key] = type(event.target.value);
     }
   };
-}
-
-export function defineReactive(source, callback) {
-  // return function, primitive, null/undefined as is
-  // these are the leaf values, attempting to set reactivity on them
-  // will fail
-  if(
-    typeof source === 'undefined' ||
-    typeof source === 'function' ||
-    typeof source !== 'object' ||
-    source === null
-  ) return source;
-
-  // if array, map through the values and set reactivity
-  if(isArray(source)) {
-    return source.map((state, idx) => {
-      function propagateChange(changed) {
-        // update source
-        source[idx] = changed;
-
-        // reportToParent
-        return callback(source.splice(0));
-      }
-
-      return defineReactive(state, propagateChange)
-    });
-  }
-
-  // if object (object/array), walk through the members
-  // and set reactivity
-  const newObj = {};
-
-  // walk through the object
-  Object.keys(source).forEach(key => {
-    let persistedState = source[key];
-
-    function letMeKnowIfYouChangedSon(changed) {
-      // update source
-      source[key] = changed;
-
-      // reportToParent
-      return callback({...source});
-    }
-
-    // if object, go deeper and recursively make all leaves reactive
-    if(isObject(persistedState)) {
-      persistedState = defineReactive(persistedState, letMeKnowIfYouChangedSon);
-    }
-
-    // define reactive property
-    Object.defineProperty(newObj, key, {
-      enumerable: true,
-      get() { return persistedState; },
-      set(nextState) {
-        // set the internal state
-        persistedState = nextState;
-
-        // upon any value is being set, do triggerDispatch
-        callback(nextState);
-      }
-    });
-  });
-
-  return newObj;
 }

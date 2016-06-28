@@ -4,15 +4,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 exports.formagic = formagic;
 exports.bind = bind;
-exports.defineReactive = defineReactive;
 
 var _react = require('react');
 
@@ -78,20 +75,14 @@ function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
         key: 'recalculateReactiveTree',
         value: function recalculateReactiveTree(dataTree) {
           var selectPropsToListen = this.selectPropsToListen;
+          var subscribeToChanges = this.subscribeToChanges;
+          var dispatch = this.props.dispatch;
 
           var selectedDataTree = selectPropsToListen(dataTree);
 
-          this._repo = (0, _createProxy.createProxy)(selectedDataTree, this.handleGlobalStateChange.bind(this));
-        }
-      }, {
-        key: 'handleGlobalStateChange',
-        value: function handleGlobalStateChange() {
-          var dispatch = this.props.dispatch;
-          var _repo = this._repo;
-          var subscribeToChanges = this.subscribeToChanges;
-
-
-          subscribeToChanges(_repo, dispatch);
+          this._repo = (0, _createProxy.createProxy)(selectedDataTree, function (newState) {
+            return subscribeToChanges(newState, dispatch);
+          });
         }
       }, {
         key: 'render',
@@ -121,65 +112,4 @@ function bind(obj, key, type) {
       obj[key] = type(event.target.value);
     }
   };
-}
-
-function defineReactive(source, callback) {
-  // return function, primitive, null/undefined as is
-  // these are the leaf values, attempting to set reactivity on them
-  // will fail
-  if (typeof source === 'undefined' || typeof source === 'function' || (typeof source === 'undefined' ? 'undefined' : _typeof(source)) !== 'object' || source === null) return source;
-
-  // if array, map through the values and set reactivity
-  if ((0, _util.isArray)(source)) {
-    return source.map(function (state, idx) {
-      function propagateChange(changed) {
-        // update source
-        source[idx] = changed;
-
-        // reportToParent
-        return callback(source.splice(0));
-      }
-
-      return defineReactive(state, propagateChange);
-    });
-  }
-
-  // if object (object/array), walk through the members
-  // and set reactivity
-  var newObj = {};
-
-  // walk through the object
-  Object.keys(source).forEach(function (key) {
-    var persistedState = source[key];
-
-    function letMeKnowIfYouChangedSon(changed) {
-      // update source
-      source[key] = changed;
-
-      // reportToParent
-      return callback(_extends({}, source));
-    }
-
-    // if object, go deeper and recursively make all leaves reactive
-    if ((0, _util.isObject)(persistedState)) {
-      persistedState = defineReactive(persistedState, letMeKnowIfYouChangedSon);
-    }
-
-    // define reactive property
-    Object.defineProperty(newObj, key, {
-      enumerable: true,
-      get: function get() {
-        return persistedState;
-      },
-      set: function set(nextState) {
-        // set the internal state
-        persistedState = nextState;
-
-        // upon any value is being set, do triggerDispatch
-        callback(nextState);
-      }
-    });
-  });
-
-  return newObj;
 }
