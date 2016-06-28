@@ -24,6 +24,8 @@ A subscriber function that will be called each time a leaf value is updated. `ne
 
 If dispatcher is available from the props given (e.g. given through `react-redux`'s `mapDispatchToProps`), it'll be available as the second argument. You can use this trait to hook your form changes to your redux store.
 
+Note that the `newState` is persistent.
+
 #### `object options (default: true)`
 - `boolean transclude`: Determines whether to override originally given props with the reactive data tree.
 
@@ -63,6 +65,9 @@ apart from [this](https://github.com/kjessec/react-formagic/blob/master/src/inde
     }
 
   ````
+
+## WHAT'S BELOW IS ALL HISTORY. `react-formagic` DOES NOT USE `Object.defineProperty` ANYMORE IN FAVOUR OF `new Proxy()`.
+
 
 ## More of 'how it works' stuff
 ### A bit of history
