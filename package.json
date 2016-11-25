@@ -1,26 +1,22 @@
 {
   "name": "react-formagic",
-  "version": "0.1.0",
-  "description": "React form binding and HoC (quite magical!)",
+  "version": "0.2.0",
+  "description": "React immutable two-way binding helper HoC",
   "main": "dist/index.js",
   "directories": {
     "test": "test"
   },
-  "dependencies": {
-    "tape": "^4.6.0"
-  },
   "devDependencies": {
-    "babel-cli": "^6.10.1",
+    "babel-cli": "^6.18.0",
     "babel-plugin-transform-object-rest-spread": "^6.8.0",
     "babel-preset-es2015": "^6.9.0",
-    "babel-preset-react": "^6.5.0"
-  },
-  "peerDependencies": {
-    "react": "^0.14.0 || ^15.0.0"
+    "babel-preset-react": "^6.5.0",
+    "blue-tape": "^1.0.0"
   },
   "scripts": {
-    "test": "babel-node test/createProxy-test",
-    "build": "babel src --out-dir dist"
+    "test": "babel-node test/createProxyTrie-test",
+    "build": "babel src --out-dir dist",
+    "preversion": "babel src --out-dir dist && git add ."
   },
   "repository": {
     "type": "git",
@@ -35,7 +31,10 @@
     "2way",
     "flux",
     "reactjs",
-    "input"
+    "input",
+    "immutable",
+    "persistent",
+    "structural sharing"
   ],
   "author": "Jesse Chung <jesse@soob.co>",
   "license": "MIT",
