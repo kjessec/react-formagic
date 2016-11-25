@@ -71,10 +71,10 @@ function formagic(propsToProxy, subscriber, options) {
         value: function recalculateReactiveTree(dataTree) {
           var _this2 = this;
 
-          var propsToPrxy = this.propsToPrxy,
+          var propsToProxy = this.propsToProxy,
               subscriber = this.subscriber;
 
-          var selectedDataTree = propsToPrxy(dataTree);
+          var selectedDataTree = propsToProxy(dataTree);
 
           return (0, _createProxyTrie2.default)(selectedDataTree, function (newState) {
             return subscriber(newState, _this2.props);
