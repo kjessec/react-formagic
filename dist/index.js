@@ -50,6 +50,7 @@ function formagic(propsToProxy, subscriber, options) {
         _this.options = _extends({}, _defaultOptions, options);
         _this.propsToProxy = propsToProxy;
         _this.subscriber = subscriber;
+        _this.createProxyTrie = (0, _createProxyTrie2.default)();
 
         // initialize repo
         _this.proxiedTrie = {};
@@ -72,11 +73,12 @@ function formagic(propsToProxy, subscriber, options) {
           var _this2 = this;
 
           var propsToProxy = this.propsToProxy,
-              subscriber = this.subscriber;
+              subscriber = this.subscriber,
+              createProxyTrie = this.createProxyTrie;
 
           var selectedDataTree = propsToProxy(dataTree);
 
-          return (0, _createProxyTrie2.default)(selectedDataTree, function (newState) {
+          return createProxyTrie(selectedDataTree, function (newState) {
             return subscriber(newState, _this2.props);
           });
         }
