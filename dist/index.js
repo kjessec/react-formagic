@@ -8,16 +8,15 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-exports.formagic = formagic;
-exports.bind = bind;
+exports.default = formagic;
 
 var _react = require('react');
 
 var _react2 = _interopRequireDefault(_react);
 
-var _createProxy = require('./createProxy');
+var _createProxyTrie = require('./createProxyTrie');
 
-var _util = require('./util');
+var _createProxyTrie2 = _interopRequireDefault(_createProxyTrie);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -32,11 +31,12 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var _defaultOptions = {
   // do not do transclusion by default
   transclude: false,
+
   // default namespace passed as a prop is formagic
   namespace: 'formagic'
 };
 
-function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
+function formagic(propsToProxy, subscriber, options) {
   return function _wrap(Component) {
     return function (_React$Component) {
       _inherits(FormagicWrapperComponent, _React$Component);
@@ -45,52 +45,48 @@ function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
         _classCallCheck(this, FormagicWrapperComponent);
 
         // assign options
+        var _this = _possibleConstructorReturn(this, (FormagicWrapperComponent.__proto__ || Object.getPrototypeOf(FormagicWrapperComponent)).call(this, props));
 
-        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(FormagicWrapperComponent).call(this, props));
-
-        _this.options = _extends({}, _defaultOptions, _options);
-
-        // assign selectPropsToListen
-        _this.selectPropsToListen = _selectPropsToListen;
-
-        // assign subscribeToChanges
-        _this.subscribeToChanges = _subscribeToChanges;
+        _this.options = _extends({}, _defaultOptions, options);
+        _this.propsToProxy = propsToProxy;
+        _this.subscriber = subscriber;
 
         // initialize repo
-        _this._repo = {};
+        _this.proxiedTrie = {};
         return _this;
       }
 
       _createClass(FormagicWrapperComponent, [{
         key: 'componentWillMount',
         value: function componentWillMount() {
-          this.recalculateReactiveTree(this.props);
+          this.proxiedTrie = this.recalculateReactiveTree(this.props);
         }
       }, {
         key: 'componentWillReceiveProps',
         value: function componentWillReceiveProps(nextProps) {
-          this.recalculateReactiveTree(nextProps);
+          this.proxiedTrie = this.recalculateReactiveTree(nextProps);
         }
       }, {
         key: 'recalculateReactiveTree',
         value: function recalculateReactiveTree(dataTree) {
-          var selectPropsToListen = this.selectPropsToListen;
-          var subscribeToChanges = this.subscribeToChanges;
-          var dispatch = this.props.dispatch;
+          var _this2 = this;
 
-          var selectedDataTree = selectPropsToListen(dataTree);
+          var propsToPrxy = this.propsToPrxy,
+              subscriber = this.subscriber;
 
-          this._repo = (0, _createProxy.createProxy)(selectedDataTree, function (newState) {
-            return subscribeToChanges(newState, dispatch);
+          var selectedDataTree = propsToPrxy(dataTree);
+
+          return (0, _createProxyTrie2.default)(selectedDataTree, function (newState) {
+            return subscriber(newState, _this2.props);
           });
         }
       }, {
         key: 'render',
         value: function render() {
           var transclude = this.options.transclude;
-          var _repo = this._repo;
+          var proxiedTrie = this.proxiedTrie;
 
-          var formagicProps = transclude ? _extends({}, _repo) : _defineProperty({}, this.options.namespace, _repo);
+          var formagicProps = transclude ? _extends({}, proxiedTrie) : _defineProperty({}, this.options.namespace, proxiedTrie);
 
           return _react2.default.createElement(Component, _extends({}, this.props, formagicProps));
         }
@@ -98,18 +94,5 @@ function formagic(_selectPropsToListen, _subscribeToChanges, _options) {
 
       return FormagicWrapperComponent;
     }(_react2.default.Component);
-  };
-}
-
-function bind(obj, key, type) {
-  if (!type) type = function type(v) {
-    return v;
-  };
-  return {
-    value: type(obj[key] || ''),
-    checked: Boolean(!!obj[key]),
-    onChange: function onChange(event) {
-      obj[key] = type(event.target.value);
-    }
   };
 }

@@ -1,6 +1,6 @@
 {
   "name": "react-formagic",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "React immutable two-way binding helper HoC",
   "main": "dist/index.js",
   "directories": {
