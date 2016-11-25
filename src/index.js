@@ -1,6 +1,6 @@
 'use strict';
 import React from 'react';
-import createProxyTrie from './createProxyTrie';
+import createProxyTrieContext from './createProxyTrie';
 
 const _defaultOptions = {
   // do not do transclusion by default
@@ -21,6 +21,7 @@ export default function formagic(propsToProxy, subscriber, options) {
         this.options = { ..._defaultOptions, ...options };
         this.propsToProxy = propsToProxy;
         this.subscriber = subscriber;
+        this.createProxyTrie = createProxyTrieContext();
 
         // initialize repo
         this.proxiedTrie = {};
@@ -35,7 +36,7 @@ export default function formagic(propsToProxy, subscriber, options) {
       }
 
       recalculateReactiveTree(dataTree) {
-        const { propsToProxy, subscriber } = this;
+        const { propsToProxy, subscriber, createProxyTrie } = this;
         const selectedDataTree = propsToProxy(dataTree);
 
         return createProxyTrie(
