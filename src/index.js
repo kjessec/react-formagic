@@ -35,8 +35,8 @@ export default function formagic(propsToProxy, subscriber, options) {
       }
 
       recalculateReactiveTree(dataTree) {
-        const { propsToPrxy, subscriber } = this;
-        const selectedDataTree = propsToPrxy(dataTree);
+        const { propsToProxy, subscriber } = this;
+        const selectedDataTree = propsToProxy(dataTree);
 
         return createProxyTrie(
           selectedDataTree,
