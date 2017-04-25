@@ -1,5 +1,6 @@
 'use strict';
 import { isObject, isArray, deepPlant, shallowCompare } from './util';
+import asap from 'asap';
 
 // type constants
 const IS_ARRAY      = 0x1;
@@ -11,11 +12,20 @@ export default function createProxyContext() {
 
   return function createProxyTrie(source, _notifyUpdate) {
     notifyUpdate = _notifyUpdate;
+    let batch = [];
+    let updateBatch = null;
 
     // using previous proxyTrie, calculate a new proxy trie
     proxyTrie = createProxyNode(proxyTrie, source, (path, nextNodeState) => {
-      // caution: proxyTrie here is the newer version!
-      notifyUpdate(deepPlant(proxyTrie, path.slice(1), () => nextNodeState));
+      if(!updateBatch) {
+        updateBatch = true;
+        asap(() => {
+          const nextState = batch.reduce((state, { path, nextNodeState }) => deepPlant(state, path.slice(1), () => nextNodeState), proxyTrie);
+          updateBatch = null;
+          notifyUpdate(nextState);
+        });
+      }
+      batch.push({ path, nextNodeState });
     }, '');
 
     return proxyTrie;

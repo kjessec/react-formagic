@@ -58,6 +58,7 @@ test('creating proxy trie', t => {
     .then(previousState => new Promise(next => {
       // 2nd version of persistent state
       const proxyTrie = createProxyTrie(previousState, newState => {
+        console.log('???', newState);
         t.ok(newState.object.hello === '世界', 'previous update is persisted');
         t.ok(newState !== previousState, 'root node is created anew');
         t.ok(newState.arrayOfObjects !== previousState.arrayOfObjects, 'interim node is created anew');

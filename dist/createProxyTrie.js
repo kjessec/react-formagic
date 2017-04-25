@@ -10,6 +10,12 @@ exports.default = createProxyContext;
 
 var _util = require('./util');
 
+var _asap = require('asap');
+
+var _asap2 = _interopRequireDefault(_asap);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 // type constants
 var IS_ARRAY = 0x1;
 var IS_OBJECT = 0x2;
@@ -20,13 +26,26 @@ function createProxyContext() {
 
   return function createProxyTrie(source, _notifyUpdate) {
     notifyUpdate = _notifyUpdate;
+    var batch = [];
+    var updateBatch = null;
 
     // using previous proxyTrie, calculate a new proxy trie
     proxyTrie = createProxyNode(proxyTrie, source, function (path, nextNodeState) {
-      // caution: proxyTrie here is the newer version!
-      notifyUpdate((0, _util.deepPlant)(proxyTrie, path.slice(1), function () {
-        return nextNodeState;
-      }));
+      if (!updateBatch) {
+        updateBatch = true;
+        (0, _asap2.default)(function () {
+          var nextState = batch.reduce(function (state, _ref) {
+            var path = _ref.path,
+                nextNodeState = _ref.nextNodeState;
+            return (0, _util.deepPlant)(state, path.slice(1), function () {
+              return nextNodeState;
+            });
+          }, proxyTrie);
+          updateBatch = null;
+          notifyUpdate(nextState);
+        });
+      }
+      batch.push({ path: path, nextNodeState: nextNodeState });
     }, '');
 
     return proxyTrie;
