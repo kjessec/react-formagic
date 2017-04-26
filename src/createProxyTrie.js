@@ -22,6 +22,7 @@ export default function createProxyContext() {
         asap(() => {
           const nextState = batch.reduce((state, { path, nextNodeState }) => deepPlant(state, path.slice(1), () => nextNodeState), proxyTrie);
           updateBatch = null;
+          batch = [];
           notifyUpdate(nextState);
         });
       }

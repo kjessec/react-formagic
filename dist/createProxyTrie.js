@@ -42,6 +42,7 @@ function createProxyContext() {
             });
           }, proxyTrie);
           updateBatch = null;
+          batch = [];
           notifyUpdate(nextState);
         });
       }
